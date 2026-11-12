@@ -1,0 +1,176 @@
+[package]
+name = "atlas"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+build = "scripts/winfsp-build.rs"
+default-run = "dovy"
+
+[[bin]]
+name = "dovy"
+path = "src/main.rs"
+
+[workspace]
+members = [
+    ".",
+    "crates/atlas-model",
+    "crates/atlas-core",
+    "crates/atlas-win-space",
+    "crates/atlas-ui",
+    "crates/atlas-publisher",
+    "crates/atlas-cloud-extension",
+    "crates/atlas-icon-extension",
+    "crates/atlas-search-service",
+]
+exclude = ["vendor/zed-reference", "vendor/gpui-component-fork", "vendor/gpui-ce", "vendor/gpui-ce/crates/*", "vendor/gpui-ce/tooling/perf"]
+resolver = "2"
+
+[workspace.dependencies]
+atlas-model = { path = "crates/atlas-model" }
+atlas-core = { path = "crates/atlas-core" }
+atlas-ui = { path = "crates/atlas-ui" }
+anyhow = "1"
+flume = "0.11"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "fs", "io-util", "sync", "macros", "time", "process"] }
+tracing = "0.1.44"
+rust-i18n = "3"
+dirs = "6"
+zip = "2"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+nursery = { level = "deny", priority = -1 }
+unwrap_used = "warn"
+expect_used = "warn"
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+cast_precision_loss = "allow"
+cast_possible_truncation = "allow"
+cast_sign_loss = "allow"
+cast_possible_wrap = "allow"
+option_if_let_else = "allow"
+needless_pass_by_ref_mut = "allow"
+needless_pass_by_value = "allow"
+trivially_copy_pass_by_ref = "allow"
+too_many_lines = "allow"
+similar_names = "allow"
+struct_excessive_bools = "allow"
+# Library crates expose internal modules as "public API", surfacing doc/field
+# pedantic lints that the binary suppresses. These are internal atlas-* crates,
+# not a published API, so the noise isn't worth churn.
+too_long_first_doc_paragraph = "allow"
+pub_underscore_fields = "allow"
+implicit_hasher = "allow"
+new_without_default = "allow"
+
+# Bundle metadata for `cargo bundle` (cargo install cargo-bundle).
+# Produces a macOS .app / Linux .deb with the icon and identifier below.
+# The folder "Open With" association is injected per-OS from the packaging/ manifests.
+[package.metadata.bundle]
+name = "Dovy File Manager"
+identifier = "com.dovy.FileManager"
+short_description = "Modern cross-platform file manager"
+category = "Utility"
+icon = ["packaging/icons/dovy.ico", "packaging/icons/dovy.png"]
+
+# `kamadak-exif` exposes its crate as `exif` (used in fs/preview.rs); cargo-machete
+# matches by package name and reports a false positive — ignore it.
+[package.metadata.cargo-machete]
+ignored = ["kamadak-exif"]
+
+[features]
+conversion-lab = ["atlas-ui/conversion-lab"]
+ui-lab = ["atlas-ui/ui-lab"]
+windows-cleanup = ["atlas-ui/windows-cleanup"]
+default = ["provider-host", "rar", "sevenz", "windows-cleanup"]
+dhat-heap = ["dhat"]
+# Host support for optional virtual-file-provider extensions. The rclone backend
+# is built only by `atlas-cloud-extension`.
+provider-host = ["atlas-ui/provider-host"]
+# RAR archive navigation via bundled UnRAR.exe CLI.
+rar = ["atlas-ui/rar"]
+sevenz = ["atlas-ui/sevenz"]
+perf-log = ["atlas-ui/perf-log"]
+tracy = ["atlas-ui/tracy"]
+
+[dependencies]
+dhat = { version = "0.3", optional = true }
+# FASE J: the whole gpui application layer (App entity, views, overlays, input,
+# platform glue) lives in `atlas-ui`. This binary is a thin launcher over
+# `atlas_ui::run`. Backends/state live in atlas-core/atlas-model (transitive).
+atlas-ui = { workspace = true }
+
+tokio = { version = "1", features = ["rt-multi-thread", "fs", "io-util", "sync", "macros", "time", "process"] }
+tracing = "0.1.44"
+tracing-subscriber = "0.3.23"
+
+[target.'cfg(windows)'.dependencies]
+atlas-win-space = { path = "crates/atlas-win-space" }
+
+# The lint policy lives in [workspace.lints]; this package inherits it.
+[lints]
+workspace = true
+
+[profile.dev]
+opt-level = 0
+# Shared by cargo run, devfast, and devfull. Keeping one local profile avoids
+# duplicating the application and dependency graph under target/dev-fast.
+codegen-units = 64
+incremental = true
+debug = "line-tables-only"
+
+# Keep dependencies lightly optimized so GPUI remains usable without paying the
+# compile-time and disk cost of a second development profile.
+[profile.dev.package."*"]
+opt-level = 1
+codegen-units = 256
+
+# Native NTFS decoding is CPU-intensive even in interactive development builds.
+[profile.dev.package.atlas-win-space]
+opt-level = 2
+
+[profile.dev.package.atlas-core]
+opt-level = 1
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = true
+panic = "abort"
+
+# Iterative performance build: keeps release optimization and abort semantics,
+# but trades final-binary optimization for much faster atlas-ui recompiles.
+# It lives in target/release-perf, so it never contaminates the definitive
+# target/release artifact.
+[profile.release-perf]
+inherits = "release"
+lto = false
+codegen-units = 16
+incremental = true
+
+# Vendored gpui-component fork with Atlas tab styling patches. Keep every
+# gpui-component crate on the same source to avoid duplicate GPUI app types.
+[patch."https://github.com/longbridge/gpui-component"]
+gpui-component = { path = "vendor/gpui-component-fork/crates/ui" }
+gpui-component-assets = { path = "vendor/gpui-component-fork/crates/assets" }
+gpui-component-macros = { path = "vendor/gpui-component-fork/crates/macros" }
+
+# Optional local taffy perf patch. The normal build uses crates.io taffy.
+# To re-enable the counters temporarily, restore the checkout and add:
+# [patch.crates-io]
+# taffy = { path = "../taffy-patch" }
+
+[patch."https://github.com/gpui-ce/gpui-ce"]
+gpui-ce = { path = "vendor/gpui-ce/crates/gpui" }
+gpui_ce_platform = { path = "vendor/gpui-ce/crates/gpui_platform" }
+gpui_ce_macros = { path = "vendor/gpui-ce/crates/gpui_macros" }
+gpui_ce_web = { path = "vendor/gpui-ce/crates/gpui_web" }

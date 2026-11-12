@@ -1,0 +1,15 @@
+id = "cloud"
+name = "Cloud Drives"
+version = "0.2.0"
+author = "Atlas Team"
+description = "SFTP, FTP, WebDAV, SMB, Google Drive and OneDrive virtual locations"
+kind = "sidecar"
+
+[sidecar]
+command = "atlas-cloud-extension.exe"
+
+[[sidebar]]
+id = "cloud"
+title = "Network"
+icon = "cloud"
+add_action = "cloud.add"

@@ -1,0 +1,6 @@
+# Pinned to the latest validated stable toolchain. gpui uses `hint::cold_path`,
+# which requires Rust 1.95.0 or newer.
+[toolchain]
+channel = "1.97.1"
+profile = "minimal"
+components = ["rustfmt", "clippy"]

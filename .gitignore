@@ -1,0 +1,33 @@
+# Rust build output
+/target/
+
+# Vendored registry cache from the recovered offline source archive
+/vendor-registry/
+
+# Recovery-archive manifests that no longer match the maintained tree
+/SOURCE-FILES.json
+/SOURCE-README.txt
+
+# Local build and diagnostic logs
+/*.log
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+
+# Windows packaging output
+/AppPackages/
+*.msix
+*.msixbundle
+*.appx
+*.appxbundle
+*.cer
+*.pfx

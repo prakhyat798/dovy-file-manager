@@ -1,0 +1,28 @@
+[package]
+name = "atlas-search-service"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+default-run = "dovy-search-service"
+
+[[bin]]
+name = "dovy-search-service"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+atlas-core = { path = "../atlas-core" }
+atlas-win-space = { path = "../atlas-win-space" }
+serde_json.workspace = true
+memmap2 = "0.9"
+dirs.workspace = true
+tracing.workspace = true
+tracing-subscriber = "0.3"
+walkdir = "2"
+
+[target.'cfg(windows)'.dependencies]
+windows-service = "0.8"
+windows-sys = { version = "0.61", features = [
+    "Win32_Foundation", "Win32_Security", "Win32_Security_Authorization", "Win32_Storage_FileSystem",
+    "Win32_System_IO", "Win32_System_Pipes", "Win32_System_Threading"
+] }

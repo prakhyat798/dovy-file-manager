@@ -1,0 +1,21 @@
+[package]
+name = "atlas-cloud-extension"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+default-run = "dovy-cloud-extension"
+
+[[bin]]
+name = "dovy-cloud-extension"
+path = "src/main.rs"
+
+[dependencies]
+atlas-core = { workspace = true, features = ["cloud-backend"] }
+atlas-model = { workspace = true, features = ["provider-host"] }
+anyhow.workspace = true
+serde_json.workspace = true
+serde.workspace = true
+tokio.workspace = true
+
+[lints]
+workspace = true

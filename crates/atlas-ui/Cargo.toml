@@ -1,0 +1,124 @@
+[package]
+name = "atlas-ui"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+build = "../../scripts/winfsp-build.rs"
+
+[features]
+conversion-lab = ["gpui/test-support", "gpui_platform/test-support"]
+ui-lab = ["gpui/test-support", "gpui_platform/test-support"]
+# Enables reviewed user-Temp deletion. The Atlas launcher enables this by default;
+# custom UI hosts can retain the analysis/preview-only configuration.
+windows-cleanup = []
+default = ["provider-host"]
+# Generic host UI for optional out-of-process virtual-file providers.
+provider-host = ["atlas-core/provider-host", "atlas-model/provider-host"]
+# RAR archive navigation. Forwards to the core crate where `rar_backend` lives.
+rar = ["atlas-core/rar"]
+# 7z archive navigation and runtime tool extraction (ImageMagick portable).
+sevenz = ["atlas-core/sevenz"]
+# Compile perf logging only when diagnosing UI stalls.
+perf-log = []
+# Compile Tracy profiler hooks only in profiling builds.
+tracy = ["dep:tracy-client"]
+
+[dependencies]
+atlas-core.workspace = true
+atlas-model.workspace = true
+rust-i18n.workspace = true
+
+# --- gpui (renderer) ----------------------------------------------------------
+# The component fork uses the same vendored CE packages to share entity types.
+gpui = { package = "gpui-ce", git = "https://github.com/gpui-ce/gpui-ce", rev = "175ef66578817bf96b2e26b0cd568dd4f4793529" }
+gpui_platform = { package = "gpui_ce_platform", git = "https://github.com/gpui-ce/gpui-ce", rev = "175ef66578817bf96b2e26b0cd568dd4f4793529", features = ["font-kit", "x11", "wayland"] }
+gpui-component = { git = "https://github.com/longbridge/gpui-component", rev = "b2472cd798422b05e2448d07aaab1550c21155f7" }
+gpui-component-assets = { git = "https://github.com/longbridge/gpui-component", rev = "b2472cd798422b05e2448d07aaab1550c21155f7" }
+
+tokio.workspace = true
+flume.workspace = true
+tracing.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+semver = "1"
+lru = "0.16"
+# gpui's async executor uses smol; `smol::Timer` drives the BgResult drain loop.
+smol = "2"
+arboard = "3"
+dirs.workspace = true
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "gif", "webp", "bmp", "ico"] }
+open = "5"
+rfd = "0.15"
+resvg = "0.45"
+lsp-types = "0.97"
+anyhow = "1"
+zeroize = "1"
+tracy-client = { version = "0.18.4", optional = true, default-features = false, features = ["enable", "only-localhost", "ondemand"] }
+
+[target.'cfg(windows)'.dependencies]
+atlas-win-space = { path = "../atlas-win-space" }
+# Windows OLE drag-and-drop (IDataObject, IDropSource, IDropTarget, DoDragDrop).
+# Version matches what gpui_windows already pulls in (windows = "0.61") so no
+# duplicate linking.
+windows = { version = "0.61", features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Graphics_Gdi",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Com",
+    "Win32_System_Com_StructuredStorage",
+    "Win32_System_DataExchange",
+    "Win32_System_LibraryLoader",
+    "Win32_System_Memory",
+    "Win32_System_Ole",
+    "Win32_System_SystemServices",
+    "Win32_System_Registry",
+    "Win32_System_Threading",
+    "Win32_UI_Shell",
+    "Win32_UI_Shell_Common",
+    "Win32_UI_WindowsAndMessaging",
+] }
+# windows-core is a direct dep because the #[implement] macro generates code
+# that references `windows_core::IUnknownImpl` by the crate name directly.
+windows-core = "0.61"
+# Raw window handle — exposes HWND via gpui's HasWindowHandle impl.
+# Version 0.6 matches the one gpui already depends on.
+raw-window-handle = "0.6"
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+
+[[example]]
+name = "resize_diagnostic"
+required-features = ["ui-lab"]
+
+[[example]]
+name = "vault_diagnostic"
+required-features = ["ui-lab"]
+
+[[example]]
+name = "context_menu_diagnostic"
+required-features = ["ui-lab"]
+
+[[example]]
+name = "view_controls_diagnostic"
+required-features = ["ui-lab"]
+
+[[example]]
+name = "selection_diagnostic"
+required-features = ["ui-lab"]
+
+[[example]]
+name = "cloud_diagnostic"
+required-features = ["ui-lab", "provider-host"]
+
+[[example]]
+name = "chrome_diagnostic"
+required-features = ["ui-lab"]
+
+[[example]]
+name = "cleanup_diagnostic"
+required-features = ["ui-lab"]
