@@ -8,6 +8,11 @@
 
 [![License: AGPL 3.0](https://img.shields.io/badge/License-AGPL_3.0-blue.svg)](LICENSE)
 [![Built with Rust](https://img.shields.io/badge/Built_with-Rust-orange.svg)](https://www.rust-lang.org/)
+[![Latest Release](https://img.shields.io/github/v/release/prakhyat798/dovy-file-manager?color=brightgreen&label=Version)](https://github.com/prakhyat798/dovy-file-manager/releases)
+
+<br>
+
+[![Download Windows Installer](https://img.shields.io/badge/⬇️_Download_Windows_Installer-v0.1.3-0078D4?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/prakhyat798/dovy-file-manager/releases/download/v0.1.3/Dovy-File-Manager-Setup-v0.1.3.exe)
 
 </div>
 
